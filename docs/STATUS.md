@@ -20,6 +20,8 @@ Last updated: 2026-05-29
 
 ## Current Activity
 
+**[2026-05-29]** Updated ARCHITECTURE.md: Groq API key now secured via Vercel Edge Function proxy (deployment target: Vercel + Substack iframe embed). No API key in browser bundle.
+
 **[2026-05-29]** Created `docs/` folder with:
 - `ARCHITECTURE.md` — full architecture document (tech stack, phases, file structure, data flow, API plan, component tree, state management, testing plan)
 - `TECHNICAL.md` — deep technical explainer (in progress below)

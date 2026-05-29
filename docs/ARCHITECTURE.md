@@ -27,13 +27,21 @@ Lens View is a ChatGPT-accurate chat interface that augments AI responses with a
 - Dark mode with `class` strategy gives instant toggle without flash
 - Arbitrary values (`underline decoration-[#F59E0B]`) needed for Lens View custom underlines
 
-### AI Integration: Groq SDK (groq-sdk)
+### AI Integration: Groq SDK (groq-sdk) via Vercel Edge Function proxy
 
-**Why Groq directly from frontend:**
-- No backend server required — keeps the prototype self-contained
-- Groq's streaming API (`stream: true`) enables word-by-word response rendering
+**Why a Vercel Edge Function proxy:**
+- The app is deployed publicly (embedded in Substack via iframe) — the Groq API key must never reach the browser
+- A Vercel Edge Function (`/api/chat`) acts as a thin proxy: the React app posts messages to it, it adds the key server-side and forwards to Groq
+- The key lives in Vercel Environment Variables, never in the browser bundle
+- Edge Functions run at Vercel's CDN edge — latency overhead is minimal (~5ms)
+- Groq's streaming API (`stream: true`) is forwarded as a `ReadableStream` response, preserving word-by-word rendering
 - `llama-3.3-70b-versatile` is fast enough for real-time streaming at acceptable latency
-- The `VITE_GROQ_API_KEY` env var is acceptable for a prototype (not for production)
+
+**Deployment: Vercel (free tier)**
+- Zero-config deployment for Vite projects
+- `git push` triggers automatic redeploy
+- Substack embed: `<iframe src="https://your-app.vercel.app" />` in a Substack post
+- Custom domain supported on free tier
 
 ### No State Management Library
 
@@ -224,16 +232,55 @@ USER ACTION
 
 ## 5. Groq API Integration Plan
 
-### Client Initialisation
+### Vercel Edge Function — `/api/chat.js`
+
+```js
+// api/chat.js  (Vercel Edge Function)
+import Groq from 'groq-sdk';
+
+export const config = { runtime: 'edge' };
+
+export default async function handler(req) {
+  const { messages, lensView } = await req.json();
+  const groq = new Groq({ apiKey: process.env.GROQ_API_KEY }); // server-side only
+
+  const stream = await groq.chat.completions.create({
+    model: 'llama-3.3-70b-versatile',
+    messages: [
+      { role: 'system', content: lensView ? LENS_SYSTEM_PROMPT : STANDARD_SYSTEM_PROMPT },
+      ...messages
+    ],
+    stream: true,
+    max_tokens: 1024,
+  });
+
+  // Forward the SSE stream directly to the browser
+  return new Response(stream.toReadableStream(), {
+    headers: { 'Content-Type': 'text/event-stream' }
+  });
+}
+```
+
+### Browser Client
 
 ```js
 // src/services/groqService.js
-import Groq from 'groq-sdk';
-
-const groq = new Groq({
-  apiKey: import.meta.env.VITE_GROQ_API_KEY,
-  dangerouslyAllowBrowser: true   // required for direct browser calls
-});
+// No API key here — all calls go through /api/chat
+async function* streamResponse({ messages, lensView }) {
+  const res = await fetch('/api/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ messages, lensView })
+  });
+  // Read SSE stream
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    yield decoder.decode(value);
+  }
+}
 ```
 
 ### System Prompts
@@ -456,4 +503,31 @@ interface Message {
 
 ---
 
-*Document version: 1.0 — awaiting Phase 1 approval*
+## Deployment Architecture
+
+```
+Substack post
+└── <iframe src="https://lens-view.vercel.app">
+        │
+        ▼
+    Vercel CDN (serves React SPA)
+        │  POST /api/chat  (JSON: messages[], lensView bool)
+        ▼
+    Vercel Edge Function  (/api/chat.js)
+        │  GROQ_API_KEY in Vercel env vars (never leaves server)
+        │  Forwards SSE stream back to browser
+        ▼
+    Groq API  (llama-3.3-70b-versatile)
+```
+
+**Environment variables:**
+
+| Variable | Where | Value |
+|----------|-------|-------|
+| `GROQ_API_KEY` | Vercel project settings | Your Groq key |
+
+No `.env` file needed in the repo. The browser has zero access to the key.
+
+---
+
+*Document version: 1.1 — updated with Vercel proxy deployment, awaiting Phase 1 approval*

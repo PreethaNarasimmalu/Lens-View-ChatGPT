@@ -31,7 +31,7 @@ Groq Cloud API
 └── llama-3.3-70b-versatile (inference)
 ```
 
-There is **no backend**. The Groq SDK is called directly from the browser using `dangerouslyAllowBrowser: true`. This is acceptable for a prototype but would expose the API key in production — a real deployment would proxy through a server.
+The app is deployed on **Vercel** and embedded in Substack via an `<iframe>`. Because the iframe is publicly accessible, the Groq API key is kept entirely server-side in a **Vercel Edge Function** (`/api/chat`). The browser never sees the key — it only ever calls `/api/chat` on the same Vercel origin.
 
 ---
 
