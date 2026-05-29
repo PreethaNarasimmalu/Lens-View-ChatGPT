@@ -9,7 +9,7 @@ Last updated: 2026-05-29
 | Phase | Status | Notes |
 |-------|--------|-------|
 | Architecture | ✅ Complete | ARCHITECTURE.md created, awaiting approval |
-| Phase 1 — Foundation | ⏳ Pending approval | |
+| Phase 1 — Foundation | ✅ Complete | All 18 tests pass, clean build |
 | Phase 2 — Chat Interface | ⏳ Not started | |
 | Phase 3 — Groq Integration | ⏳ Not started | |
 | Phase 4 — Lens View Core | ⏳ Not started | |
@@ -27,7 +27,10 @@ Last updated: 2026-05-29
 - `TECHNICAL.md` — deep technical explainer (in progress below)
 - `STATUS.md` — this file
 
-**Waiting for:** User approval of ARCHITECTURE.md before writing any code.
+**[2026-05-29]** Phase 1 complete. 18/18 tests passing, production build clean (202KB JS, 11KB CSS).
+Files built: App.jsx, Sidebar, TopBar, ChatArea, EmptyState, PresetQuestion, ChatInput, ThemeToggle, ThemeContext, constants, styles.
+
+**Waiting for:** User to say "proceed" to begin Phase 2.
 
 ---
 
