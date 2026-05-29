@@ -10,7 +10,7 @@ Last updated: 2026-05-29
 |-------|--------|-------|
 | Architecture | ✅ Complete | ARCHITECTURE.md created, awaiting approval |
 | Phase 1 — Foundation | ✅ Complete | All 18 tests pass, clean build |
-| Phase 2 — Chat Interface | ⏳ Not started | |
+| Phase 2 — Chat Interface | ✅ Complete | All 47 tests pass, clean build |
 | Phase 3 — Groq Integration | ⏳ Not started | |
 | Phase 4 — Lens View Core | ⏳ Not started | |
 | Phase 5 — Interactions | ⏳ Not started | |
@@ -30,7 +30,9 @@ Last updated: 2026-05-29
 **[2026-05-29]** Phase 1 complete. 18/18 tests passing, production build clean (202KB JS, 11KB CSS).
 Files built: App.jsx, Sidebar, TopBar, ChatArea, EmptyState, PresetQuestion, ChatInput, ThemeToggle, ThemeContext, constants, styles.
 
-**Waiting for:** User to say "proceed" to begin Phase 2.
+**[2026-05-29]** Phase 2 complete. 47/47 tests passing. Message bubbles, TypingIndicator, LensTogglePill, ChatContext reducer, useChat hook with word-by-word simulated streaming all working.
+
+**Waiting for:** User to say "proceed" to begin Phase 3 (Groq integration).
 
 ---
 
