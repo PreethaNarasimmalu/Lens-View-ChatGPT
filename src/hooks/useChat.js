@@ -1,51 +1,55 @@
 import { useCallback } from 'react'
 import { useChat as useChatContext } from '../context/ChatContext'
-
-// Phase 2: hardcoded placeholder — replaced in Phase 3 with Groq streaming
-const PLACEHOLDER_RESPONSE =
-  "This is a placeholder response. In Phase 3, this will be replaced with a real streaming response from Groq's llama-3.3-70b-versatile model. The Lens View feature will then annotate each claim as VERIFIED, UNCERTAIN, or ASSUMPTION."
+import { streamResponse } from '../services/groqService'
 
 export function useChat() {
   const { state, dispatch } = useChatContext()
 
-  const sendMessage = useCallback((text) => {
+  const sendMessage = useCallback(async (text) => {
     const userId = crypto.randomUUID()
     const assistantId = crypto.randomUUID()
 
-    // Append user message
     dispatch({
       type: 'SEND_MESSAGE',
       payload: { id: userId, role: 'user', rawText: text, segments: null, timestamp: Date.now() },
     })
 
-    // Start assistant message (empty, streaming)
     dispatch({
       type: 'START_ASSISTANT_MESSAGE',
       payload: { id: assistantId, role: 'assistant', rawText: '', segments: null, timestamp: Date.now() },
     })
 
-    // Simulate word-by-word streaming with setInterval
-    const words = PLACEHOLDER_RESPONSE.split(' ')
-    let i = 0
-    const interval = setInterval(() => {
-      if (i < words.length) {
-        dispatch({
-          type: 'STREAM_CHUNK',
-          id: assistantId,
-          chunk: (i === 0 ? '' : ' ') + words[i],
-        })
-        i++
-      } else {
-        clearInterval(interval)
-        dispatch({
-          type: 'FINALISE_MESSAGE',
-          id: assistantId,
-          rawText: PLACEHOLDER_RESPONSE,
-          segments: null,
-        })
+    // Build conversation history for Groq (exclude the empty assistant stub)
+    const history = [
+      ...state.messages.map(m => ({ role: m.role, content: m.rawText })),
+      { role: 'user', content: text },
+    ]
+
+    let fullText = ''
+
+    try {
+      for await (const chunk of streamResponse({ messages: history, lensView: state.lensViewActive })) {
+        fullText += chunk
+        dispatch({ type: 'STREAM_CHUNK', id: assistantId, chunk })
       }
-    }, 60)
-  }, [dispatch])
+
+      dispatch({
+        type: 'FINALISE_MESSAGE',
+        id: assistantId,
+        rawText: fullText,
+        segments: null, // Phase 4 will parse Lens View JSON here
+      })
+    } catch (err) {
+      dispatch({ type: 'SET_ERROR', error: err.message })
+      // Replace empty assistant stub with the error text so it's visible in chat
+      dispatch({
+        type: 'FINALISE_MESSAGE',
+        id: assistantId,
+        rawText: `⚠ ${err.message}`,
+        segments: null,
+      })
+    }
+  }, [dispatch, state.messages, state.lensViewActive])
 
   return { state, sendMessage, dispatch }
 }
