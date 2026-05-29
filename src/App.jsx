@@ -3,11 +3,13 @@ import Sidebar from './components/layout/Sidebar'
 import TopBar from './components/layout/TopBar'
 import ChatArea from './components/chat/ChatArea'
 import ChatInput from './components/input/ChatInput'
+import RationalePanel from './components/lens/RationalePanel'
 import { ChatProvider } from './context/ChatContext'
 import { useChat } from './hooks/useChat'
 
 function ChatShell() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [rationaleMessage, setRationaleMessage] = useState(null)
   const { state, sendMessage, dispatch } = useChat()
 
   return (
@@ -31,6 +33,7 @@ function ChatShell() {
           isStreaming={state.isStreaming}
           lensViewActive={state.lensViewActive}
           onPresetClick={sendMessage}
+          onOpenRationale={setRationaleMessage}
         />
         <ChatInput
           onSend={sendMessage}
@@ -39,6 +42,13 @@ function ChatShell() {
           disabled={state.isStreaming}
         />
       </div>
+
+      {rationaleMessage && (
+        <RationalePanel
+          message={rationaleMessage}
+          onClose={() => setRationaleMessage(null)}
+        />
+      )}
     </div>
   )
 }
