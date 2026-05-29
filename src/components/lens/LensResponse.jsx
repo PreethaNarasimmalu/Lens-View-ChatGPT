@@ -4,7 +4,20 @@ import LensText from './LensText'
 const PROSE = 'text-sm leading-relaxed text-gray-900 dark:text-gray-100 prose prose-sm max-w-none dark:prose-invert prose-p:my-1 prose-li:my-0.5 prose-headings:my-2'
 
 export default function LensResponse({ segments, rawText, lensViewActive }) {
-  if (!lensViewActive || !segments) {
+  if (!lensViewActive) {
+    // If rawText is JSON (a Lens View response), reconstruct readable text from segments
+    const isJson = rawText?.trimStart().startsWith('{') || rawText?.trimStart().startsWith('[')
+    const displayText = isJson && segments?.length
+      ? segments.map(s => s.text).join(' ')
+      : rawText
+    return (
+      <div data-testid="plain-response" className={PROSE}>
+        <ReactMarkdown>{displayText}</ReactMarkdown>
+      </div>
+    )
+  }
+
+  if (!segments) {
     return (
       <div data-testid="plain-response" className={PROSE}>
         <ReactMarkdown>{rawText}</ReactMarkdown>
