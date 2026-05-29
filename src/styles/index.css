@@ -7,19 +7,45 @@
 @layer base {
   html {
     font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
   }
 
-  ::-webkit-scrollbar {
-    width: 6px;
+  /* Light mode base */
+  :root {
+    --chat-bg: #ffffff;
+    --sidebar-bg: #f9f9f9;
+    --input-bg: #f4f4f4;
   }
-  ::-webkit-scrollbar-track {
-    background: transparent;
+
+  /* Dark mode base */
+  .dark {
+    --chat-bg: #212121;
+    --sidebar-bg: #171717;
+    --input-bg: #2f2f2f;
   }
-  ::-webkit-scrollbar-thumb {
-    background: #4d4d4d;
-    border-radius: 3px;
+
+  /* Scrollbar — dark */
+  .dark ::-webkit-scrollbar { width: 6px; }
+  .dark ::-webkit-scrollbar-track { background: transparent; }
+  .dark ::-webkit-scrollbar-thumb { background: #4d4d4d; border-radius: 3px; }
+  .dark ::-webkit-scrollbar-thumb:hover { background: #666; }
+
+  /* Scrollbar — light */
+  :not(.dark) ::-webkit-scrollbar { width: 6px; }
+  :not(.dark) ::-webkit-scrollbar-track { background: transparent; }
+  :not(.dark) ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+  :not(.dark) ::-webkit-scrollbar-thumb:hover { background: #aaa; }
+
+  /* Break very long words so chat doesn't overflow on mobile */
+  .chat-message {
+    overflow-wrap: break-word;
+    word-break: break-word;
   }
-  ::-webkit-scrollbar-thumb:hover {
-    background: #666;
+}
+
+@layer utilities {
+  /* Focus ring consistent with ChatGPT */
+  .focus-ring {
+    @apply outline-none ring-2 ring-violet-500 ring-offset-1 ring-offset-transparent;
   }
 }

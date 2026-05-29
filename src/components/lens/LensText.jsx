@@ -1,22 +1,33 @@
 import { useState, useRef, useEffect } from 'react'
 import ClaimTooltip from './ClaimTooltip'
 
+// Color + pattern for each type (colorblind-safe: pattern is secondary signal)
 const TYPE_STYLES = {
-  UNCERTAIN: 'underline decoration-dotted decoration-amber-400 underline-offset-3 cursor-pointer',
+  // Dotted underline (pattern) + amber (color) + ⚠ icon (shape)
+  UNCERTAIN:  'underline decoration-dotted decoration-amber-400 underline-offset-3 cursor-pointer',
+  // Dashed underline (pattern) + blue (color) + ~ prefix (shape)
   ASSUMPTION: 'underline decoration-dashed decoration-blue-400 underline-offset-3 cursor-pointer',
-  VERIFIED: '',
+  VERIFIED:   '',
 }
 
-const TYPE_ICON = {
-  UNCERTAIN: '⚠',
-  ASSUMPTION: null,
-  VERIFIED: null,
+// Visible non-color signal for each type (icon or glyph)
+const TYPE_PREFIX = {
+  UNCERTAIN:  { label: '⚠ ', srOnly: 'Uncertain claim: ' },
+  ASSUMPTION: { label: '~ ',  srOnly: 'Assumption: ' },
+  VERIFIED:   null,
+}
+
+const SR_SUFFIX = {
+  UNCERTAIN:  ' (uncertain — click for details)',
+  ASSUMPTION: ' (assumption — click for details)',
+  VERIFIED:   '',
 }
 
 export default function LensText({ segment }) {
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
   const isInteractive = segment.type !== 'VERIFIED' && segment.reason
+  const prefix = TYPE_PREFIX[segment.type]
 
   // Close tooltip when clicking outside
   useEffect(() => {
@@ -33,14 +44,26 @@ export default function LensText({ segment }) {
     if (e.key === 'Escape') setOpen(false)
   }
 
+  // Screen-reader-only label injected via aria-label on the wrapper span
+  const srLabel = prefix
+    ? `${prefix.srOnly}${segment.text}${SR_SUFFIX[segment.type]}`
+    : undefined
+
   if (!isInteractive) {
     return (
       <span
         data-testid={`lens-${segment.type.toLowerCase()}`}
         className={TYPE_STYLES[segment.type]}
+        aria-label={srLabel}
       >
-        {TYPE_ICON[segment.type] && (
-          <span aria-hidden="true" className="mr-0.5 text-amber-400 text-xs">{TYPE_ICON[segment.type]}</span>
+        {prefix && (
+          <span
+            aria-hidden="true"
+            data-testid={`lens-icon-${segment.type.toLowerCase()}`}
+            className={`mr-0.5 text-xs font-bold ${segment.type === 'UNCERTAIN' ? 'text-amber-400' : 'text-blue-400'}`}
+          >
+            {prefix.label}
+          </span>
         )}
         {segment.text}
       </span>
@@ -54,13 +77,19 @@ export default function LensText({ segment }) {
         role="button"
         tabIndex={0}
         aria-expanded={open}
-        aria-label={`${segment.type} claim — click for reason`}
+        aria-label={srLabel ?? `${segment.type} claim — click for reason`}
         onClick={() => setOpen(o => !o)}
         onKeyDown={handleKeyDown}
         className={`${TYPE_STYLES[segment.type]} select-none`}
       >
-        {TYPE_ICON[segment.type] && (
-          <span aria-hidden="true" className="mr-0.5 text-amber-400 text-xs">{TYPE_ICON[segment.type]}</span>
+        {prefix && (
+          <span
+            aria-hidden="true"
+            data-testid={`lens-icon-${segment.type.toLowerCase()}`}
+            className={`mr-0.5 text-xs font-bold ${segment.type === 'UNCERTAIN' ? 'text-amber-400' : 'text-blue-400'}`}
+          >
+            {prefix.label}
+          </span>
         )}
         {segment.text}
       </span>

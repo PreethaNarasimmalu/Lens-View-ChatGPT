@@ -1,8 +1,17 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import LensTogglePill from './LensTogglePill'
 
 export default function ChatInput({ onSend, onLensToggle, lensViewActive = false, disabled = false }) {
   const [value, setValue] = useState('')
+  const textareaRef = useRef(null)
+
+  // Auto-resize textarea to fit content, cap at 192px (max-h-48)
+  useEffect(() => {
+    const el = textareaRef.current
+    if (!el) return
+    el.style.height = 'auto'
+    el.style.height = Math.min(el.scrollHeight, 192) + 'px'
+  }, [value])
 
   function handleKeyDown(e) {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -16,6 +25,8 @@ export default function ChatInput({ onSend, onLensToggle, lensViewActive = false
     if (!trimmed || disabled) return
     onSend?.(trimmed)
     setValue('')
+    // Reset height
+    if (textareaRef.current) textareaRef.current.style.height = 'auto'
   }
 
   return (
@@ -23,13 +34,13 @@ export default function ChatInput({ onSend, onLensToggle, lensViewActive = false
       <div className="w-full max-w-3xl mx-auto">
         <div className="
           flex flex-col gap-2 px-4 py-3 rounded-3xl
-          bg-[#2f2f2f]
-          border border-white/10
+          bg-[#2f2f2f] dark:bg-[#2f2f2f]
+          border border-white/10 dark:border-white/10
           focus-within:border-white/20
           transition-colors
         ">
-          {/* Text input row */}
           <textarea
+            ref={textareaRef}
             data-testid="chat-input"
             rows={1}
             value={value}
@@ -37,15 +48,15 @@ export default function ChatInput({ onSend, onLensToggle, lensViewActive = false
             onKeyDown={handleKeyDown}
             placeholder="Message ChatGPT"
             disabled={disabled}
+            aria-label="Message input"
             className="
               w-full resize-none bg-transparent text-sm text-gray-100
               placeholder-gray-500 outline-none leading-6
-              max-h-48 overflow-y-auto
+              overflow-y-auto
             "
-            style={{ minHeight: '24px' }}
+            style={{ minHeight: '24px', maxHeight: '192px' }}
           />
 
-          {/* Bottom row: lens pill + send */}
           <div className="flex items-center justify-between gap-2">
             <LensTogglePill active={lensViewActive} onToggle={onLensToggle} />
 

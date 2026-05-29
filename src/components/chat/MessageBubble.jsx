@@ -7,7 +7,7 @@ export default function MessageBubble({ message, isStreamingThis, lensViewActive
   if (isUser) {
     return (
       <div data-testid="message-user" className="flex justify-end px-4 py-2">
-        <div className="max-w-[75%] md:max-w-[65%] px-4 py-3 rounded-3xl bg-[#2f2f2f] text-gray-100 text-sm leading-relaxed">
+        <div className="max-w-[75%] md:max-w-[65%] px-4 py-3 rounded-3xl bg-[#2f2f2f] dark:bg-[#2f2f2f] text-gray-100 text-sm leading-relaxed chat-message">
           {message.rawText}
         </div>
       </div>
@@ -16,6 +16,8 @@ export default function MessageBubble({ message, isStreamingThis, lensViewActive
 
   const hasLensData = lensViewActive && message.segments?.length > 0
   const isFinished = !isStreamingThis
+  // Edge case: stream finished but returned empty content
+  const isEmpty = isFinished && !message.rawText?.trim()
 
   return (
     <div data-testid="message-assistant" className="flex justify-start px-4 py-2">
@@ -26,9 +28,13 @@ export default function MessageBubble({ message, isStreamingThis, lensViewActive
         </svg>
       </div>
 
-      <div className="flex-1 min-w-0 max-w-[80%] md:max-w-[70%] flex flex-col gap-2">
+      <div className="flex-1 min-w-0 max-w-[80%] md:max-w-[70%] flex flex-col gap-2 chat-message">
         {isStreamingThis && message.rawText === '' ? (
           <TypingIndicator />
+        ) : isEmpty ? (
+          <p data-testid="empty-response" className="text-sm text-gray-500 italic">
+            No response received.
+          </p>
         ) : (
           <LensResponse
             segments={message.segments}

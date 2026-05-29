@@ -4,6 +4,7 @@ import TopBar from './components/layout/TopBar'
 import ChatArea from './components/chat/ChatArea'
 import ChatInput from './components/input/ChatInput'
 import RationalePanel from './components/lens/RationalePanel'
+import ErrorBanner from './components/ui/ErrorBanner'
 import { ChatProvider } from './context/ChatContext'
 import { useChat } from './hooks/useChat'
 
@@ -13,20 +14,29 @@ function ChatShell() {
   const { state, sendMessage, dispatch } = useChat()
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#212121] text-gray-100">
+    <div className="flex h-screen overflow-hidden bg-white dark:bg-[#212121] text-gray-900 dark:text-gray-100">
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <div className="flex flex-col flex-1 min-w-0">
         <TopBar onMenuOpen={() => setSidebarOpen(true)} />
 
-        <div className="hidden md:flex items-center px-6 py-3 border-b border-white/5">
-          <button className="flex items-center gap-1.5 text-sm font-semibold text-gray-100 hover:text-white transition-colors">
+        {/* Model selector — desktop */}
+        <div className="hidden md:flex items-center px-6 py-3 border-b border-black/5 dark:border-white/5">
+          <button className="flex items-center gap-1.5 text-sm font-semibold text-gray-800 dark:text-gray-100 hover:text-black dark:hover:text-white transition-colors">
             ChatGPT
             <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
             </svg>
           </button>
         </div>
+
+        {/* Error banner */}
+        {state.error && (
+          <ErrorBanner
+            message={state.error}
+            onDismiss={() => dispatch({ type: 'SET_ERROR', error: null })}
+          />
+        )}
 
         <ChatArea
           messages={state.messages}
