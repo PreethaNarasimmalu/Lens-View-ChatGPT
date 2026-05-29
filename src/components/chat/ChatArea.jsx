@@ -2,7 +2,7 @@ import { useRef, useEffect } from 'react'
 import EmptyState from './EmptyState'
 import MessageBubble from './MessageBubble'
 
-export default function ChatArea({ messages, isStreaming, onPresetClick }) {
+export default function ChatArea({ messages, isStreaming, lensViewActive, onPresetClick }) {
   const bottomRef = useRef(null)
 
   // Auto-scroll on new messages or stream chunks
@@ -31,6 +31,7 @@ export default function ChatArea({ messages, isStreaming, onPresetClick }) {
                 key={msg.id}
                 message={msg}
                 isStreamingThis={isStreaming && isLastAssistant}
+                lensViewActive={lensViewActive}
               />
             )
           })}

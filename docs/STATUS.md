@@ -12,7 +12,7 @@ Last updated: 2026-05-29
 | Phase 1 — Foundation | ✅ Complete | All 18 tests pass, clean build |
 | Phase 2 — Chat Interface | ✅ Complete | All 47 tests pass, clean build |
 | Phase 3 — Groq Integration | ✅ Complete | All 63 tests pass, clean build |
-| Phase 4 — Lens View Core | ⏳ Not started | |
+| Phase 4 — Lens View Core | ✅ Complete | All 98 tests pass, clean build |
 | Phase 5 — Interactions | ⏳ Not started | |
 | Phase 6 — Polish | ⏳ Not started | |
 
@@ -34,7 +34,9 @@ Files built: App.jsx, Sidebar, TopBar, ChatArea, EmptyState, PresetQuestion, Cha
 
 **[2026-05-29]** Phase 3 complete. 63/63 tests passing. Vercel Edge Function proxy at api/chat.js, groqService streaming client, useChat updated to real async generator, full error handling (429, 500, network failure).
 
-**Waiting for:** User to say "proceed" to begin Phase 4 (Lens View Core).
+**[2026-05-29]** Phase 4 complete. 98/98 tests passing. parseLensResponse (with fallbacks + fence-stripping), LensText (VERIFIED/UNCERTAIN/ASSUMPTION rendering + tooltip on click), LensResponse (toggle between plain and lens view), ClaimTooltip all built and tested.
+
+**Waiting for:** User to say "proceed" to begin Phase 5 (Interactions).
 
 ---
 

@@ -1,6 +1,7 @@
 import TypingIndicator from './TypingIndicator'
+import LensResponse from '../lens/LensResponse'
 
-export default function MessageBubble({ message, isStreamingThis }) {
+export default function MessageBubble({ message, isStreamingThis, lensViewActive }) {
   const isUser = message.role === 'user'
 
   if (isUser) {
@@ -30,13 +31,14 @@ export default function MessageBubble({ message, isStreamingThis }) {
       </div>
 
       <div className="flex-1 min-w-0 max-w-[80%] md:max-w-[70%]">
-        {/* Show typing dots only when this specific message is still empty and streaming */}
         {isStreamingThis && message.rawText === '' ? (
           <TypingIndicator />
         ) : (
-          <p className="text-sm leading-relaxed text-gray-100 whitespace-pre-wrap">
-            {message.rawText}
-          </p>
+          <LensResponse
+            segments={message.segments}
+            rawText={message.rawText}
+            lensViewActive={lensViewActive}
+          />
         )}
       </div>
     </div>

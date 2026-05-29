@@ -29,6 +29,7 @@ function ChatShell() {
         <ChatArea
           messages={state.messages}
           isStreaming={state.isStreaming}
+          lensViewActive={state.lensViewActive}
           onPresetClick={sendMessage}
         />
         <ChatInput
