@@ -5,11 +5,17 @@ export const config = { runtime: 'edge' }
 const STANDARD_SYSTEM_PROMPT =
   'You are a helpful AI assistant. Answer clearly and concisely.'
 
-const LENS_SYSTEM_PROMPT = `You are an AI assistant. When responding, return a JSON object with this structure:
-{"response": [{"text": string, "type": "VERIFIED"|"UNCERTAIN"|"ASSUMPTION", "reason": string|null, "sources": [{"title": string, "url": string, "snippet": string}]|null}]}
-Mark any statistical claims, percentages, or unverified facts as UNCERTAIN with a reason.
-Mark any inferred or extrapolated information as ASSUMPTION with a reason.
-Mark confirmed facts as VERIFIED. Keep reasons concise, 1-2 sentences.`
+const LENS_SYSTEM_PROMPT = `You are an AI assistant. Respond ONLY with a valid JSON object — no markdown fences, no prose outside the JSON.
+Use this exact structure:
+{"response": [{"text": "...", "type": "VERIFIED"|"UNCERTAIN"|"ASSUMPTION", "reason": "...", "sources": [{"title": "...", "url": "https://...", "snippet": "..."}]}]}
+
+Rules:
+- Split your full answer into at least 5–7 segments covering the whole response.
+- VERIFIED: well-established facts. reason may be null. Include 1–2 sources where applicable.
+- UNCERTAIN: statistics, percentages, projections, or contested claims. Must include a reason and 1–2 sources.
+- ASSUMPTION: inferences, interpretations, or conclusions drawn from evidence but not directly proven. Must include a reason. Every response MUST have at least 2 ASSUMPTION segments.
+- Provide 3–5 source objects total across all segments. Each source needs title, url, and snippet.
+- Output raw JSON only — absolutely no markdown code fences or extra text outside the JSON.`
 
 export default async function handler(req) {
   if (req.method !== 'POST') {

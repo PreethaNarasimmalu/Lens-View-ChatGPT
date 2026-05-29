@@ -61,11 +61,18 @@ export default function RationalePanel({ message, onClose }) {
 
   const segments = message.segments ?? []
 
-  // Collect top 3 unique sources across all segments
+  // Collect up to 5 unique sources across all segments
+  const seenUrls = new Set()
   const allSources = segments
     .flatMap(s => s.sources ?? [])
     .filter(Boolean)
-    .slice(0, 3)
+    .filter(src => {
+      const key = src.url || src.title
+      if (seenUrls.has(key)) return false
+      seenUrls.add(key)
+      return true
+    })
+    .slice(0, 5)
 
   const assumptions = segments.filter(s => s.type === 'ASSUMPTION')
   const uncertainItems = segments.filter(s => s.type === 'UNCERTAIN')

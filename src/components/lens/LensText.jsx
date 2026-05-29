@@ -4,9 +4,9 @@ import ClaimTooltip from './ClaimTooltip'
 // Color + pattern for each type (colorblind-safe: pattern is secondary signal)
 const TYPE_STYLES = {
   // Dotted underline (pattern) + amber (color) + ⚠ icon (shape)
-  UNCERTAIN:  'underline decoration-dotted decoration-amber-400 underline-offset-3 cursor-pointer',
+  UNCERTAIN:  'underline decoration-dotted decoration-amber-400 decoration-2 underline-offset-[3px] cursor-pointer bg-amber-400/10 rounded-sm px-0.5',
   // Dashed underline (pattern) + blue (color) + ~ prefix (shape)
-  ASSUMPTION: 'underline decoration-dashed decoration-blue-400 underline-offset-3 cursor-pointer',
+  ASSUMPTION: 'underline decoration-dashed decoration-blue-400 decoration-2 underline-offset-[3px] cursor-pointer bg-blue-400/10 rounded-sm px-0.5',
   VERIFIED:   '',
 }
 
