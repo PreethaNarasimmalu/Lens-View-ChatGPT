@@ -7,7 +7,7 @@ export default function MessageBubble({ message, isStreamingThis, lensViewActive
   if (isUser) {
     return (
       <div data-testid="message-user" className="flex justify-end px-4 py-2">
-        <div className="max-w-[75%] md:max-w-[65%] px-4 py-3 rounded-3xl bg-[#2f2f2f] dark:bg-[#2f2f2f] text-gray-100 text-sm leading-relaxed chat-message">
+        <div className="max-w-[75%] md:max-w-[65%] px-4 py-3 rounded-3xl bg-[#e8e8e8] dark:bg-[#2f2f2f] text-gray-800 dark:text-gray-100 text-sm leading-relaxed chat-message">
           {message.rawText}
         </div>
       </div>
