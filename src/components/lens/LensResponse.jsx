@@ -3,12 +3,12 @@ import LensText from './LensText'
 
 const PROSE = 'text-sm leading-relaxed text-gray-900 dark:text-gray-100 prose prose-sm max-w-none dark:prose-invert prose-p:my-1 prose-li:my-0.5 prose-headings:my-2'
 
-export default function LensResponse({ segments, rawText, lensViewActive }) {
+export default function LensResponse({ segments, rawText, formattedText, lensViewActive }) {
   if (!lensViewActive) {
-    // If rawText is JSON (a Lens View response), reconstruct readable text from segments
+    // If rawText is a Lens JSON blob, use formattedText or reconstruct from segments
     const isJson = rawText?.trimStart().startsWith('{') || rawText?.trimStart().startsWith('[')
-    const displayText = isJson && segments?.length
-      ? segments.map(s => s.text).join(' ')
+    const displayText = isJson
+      ? (formattedText || segments?.map(s => s.text).join(' ') || rawText)
       : rawText
     return (
       <div data-testid="plain-response" className={PROSE}>
@@ -25,47 +25,50 @@ export default function LensResponse({ segments, rawText, lensViewActive }) {
     )
   }
 
+  // Use the pre-formatted markdown from the model when available, else reconstruct
+  const markdownSource = formattedText || segments.map(s => s.text).join(' ')
+
+  // Build a map of segment text → segment for non-VERIFIED annotation
+  const segmentMap = new Map()
+  for (const seg of segments) {
+    if (seg.type !== 'VERIFIED' && seg.text?.trim()) {
+      segmentMap.set(seg.text, seg)
+    }
+  }
+
   return (
     <div data-testid="lens-response" className={PROSE}>
       <ReactMarkdown
         components={{
-          // Replace every paragraph / list-item text node with annotated LensText spans
-          p: ({ children }) => <p>{annotateProse(children, segments)}</p>,
-          li: ({ children }) => <li>{annotateProse(children, segments)}</li>,
-          strong: ({ children }) => <strong>{annotateProse(children, segments)}</strong>,
-          em: ({ children }) => <em>{annotateProse(children, segments)}</em>,
+          p: ({ children }) => <p>{annotateProse(children, segments, segmentMap)}</p>,
+          li: ({ children }) => <li>{annotateProse(children, segments, segmentMap)}</li>,
+          strong: ({ children }) => <strong>{annotateProse(children, segments, segmentMap)}</strong>,
+          em: ({ children }) => <em>{annotateProse(children, segments, segmentMap)}</em>,
         }}
       >
-        {buildMarkdown(segments)}
+        {markdownSource}
       </ReactMarkdown>
     </div>
   )
 }
 
-// Reconstruct a markdown string from segments so lists / paragraphs are preserved
-function buildMarkdown(segments) {
-  return segments.map(s => s.text).join(' ')
-}
-
-// Walk React children, annotating string nodes that match segment texts
-function annotateProse(children, segments) {
-  const annotatable = segments.filter(s => s.text?.trim())
+function annotateProse(children, segments, segmentMap) {
   const arr = Array.isArray(children) ? children : [children]
   return arr.flatMap((child, ci) => {
     if (typeof child !== 'string') return [child]
-    return splitBySegments(child, annotatable, ci)
+    return splitBySegments(child, segmentMap, ci)
   })
 }
 
-function splitBySegments(str, nonVerified, keyPrefix) {
+function splitBySegments(str, segmentMap, keyPrefix) {
   const matches = []
-  for (const seg of nonVerified) {
+  for (const [segText, seg] of segmentMap) {
     let start = 0
     while (start < str.length) {
-      const idx = str.indexOf(seg.text, start)
+      const idx = str.indexOf(segText, start)
       if (idx === -1) break
-      matches.push({ idx, end: idx + seg.text.length, seg })
-      start = idx + seg.text.length
+      matches.push({ idx, end: idx + segText.length, seg })
+      start = idx + segText.length
     }
   }
   if (!matches.length) return [str]

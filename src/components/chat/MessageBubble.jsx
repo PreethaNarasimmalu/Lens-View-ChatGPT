@@ -16,8 +16,11 @@ export default function MessageBubble({ message, isStreamingThis, lensViewActive
 
   const hasLensData = lensViewActive && message.segments?.length > 0
   const isFinished = !isStreamingThis
-  // Edge case: stream finished but returned empty content
   const isEmpty = isFinished && !message.rawText?.trim()
+
+  // While streaming a Lens View response, the model outputs raw JSON — hide it and show
+  // the typing indicator until streaming is complete and segments are parsed.
+  const isStreamingLens = isStreamingThis && lensViewActive
 
   return (
     <div data-testid="message-assistant" className="flex justify-start px-4 py-2">
@@ -29,7 +32,7 @@ export default function MessageBubble({ message, isStreamingThis, lensViewActive
       </div>
 
       <div className="flex-1 min-w-0 max-w-[80%] md:max-w-[70%] flex flex-col gap-2 chat-message">
-        {isStreamingThis && message.rawText === '' ? (
+        {isStreamingLens || (isStreamingThis && message.rawText === '') ? (
           <TypingIndicator />
         ) : isEmpty ? (
           <p data-testid="empty-response" className="text-sm text-gray-500 italic">
@@ -39,6 +42,7 @@ export default function MessageBubble({ message, isStreamingThis, lensViewActive
           <LensResponse
             segments={message.segments}
             rawText={message.rawText}
+            formattedText={message.formattedText}
             lensViewActive={lensViewActive}
           />
         )}
@@ -50,8 +54,8 @@ export default function MessageBubble({ message, isStreamingThis, lensViewActive
             onClick={() => onOpenRationale?.(message)}
             className="
               self-start flex items-center gap-1.5 px-3 py-1 rounded-full text-xs
-              border border-white/15 text-gray-400
-              hover:border-white/30 hover:text-gray-200
+              border border-black/15 dark:border-white/15 text-gray-500 dark:text-gray-400
+              hover:border-black/30 dark:hover:border-white/30 hover:text-gray-700 dark:hover:text-gray-200
               transition-all duration-150
             "
           >

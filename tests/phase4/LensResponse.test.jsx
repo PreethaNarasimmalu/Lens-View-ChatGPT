@@ -26,9 +26,9 @@ describe('LensResponse — Phase 4', () => {
     expect(screen.queryByTestId('plain-response')).not.toBeInTheDocument()
   })
 
-  it('renders all three segment types in lens mode', () => {
+  it('renders UNCERTAIN and ASSUMPTION segments with annotation in lens mode', () => {
     render(<LensResponse segments={segments} rawText="raw" lensViewActive={true} />)
-    expect(screen.getByTestId('lens-verified')).toBeInTheDocument()
+    // VERIFIED segments are plain text (no annotation wrapper) — only non-VERIFIED get LensText
     expect(screen.getByTestId('lens-uncertain')).toBeInTheDocument()
     expect(screen.getByTestId('lens-assumption')).toBeInTheDocument()
   })

@@ -37,7 +37,7 @@ function chatReducer(state, action) {
         ...state,
         isStreaming: false,
         messages: state.messages.map(m =>
-          m.id === action.id ? { ...m, rawText: action.rawText, segments: action.segments } : m
+          m.id === action.id ? { ...m, rawText: action.rawText, segments: action.segments, formattedText: action.formattedText ?? null } : m
         ),
       }
     case 'SET_STREAMING':

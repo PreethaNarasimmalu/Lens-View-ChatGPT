@@ -1,7 +1,7 @@
 import { useCallback } from 'react'
 import { useChat as useChatContext } from '../context/ChatContext'
 import { streamResponse } from '../services/groqService'
-import { parseLensResponse } from '../utils/parseLensResponse'
+import { parseLensResponse, parseFormattedText } from '../utils/parseLensResponse'
 
 export function useChat() {
   const { state, dispatch } = useChatContext()
@@ -35,12 +35,14 @@ export function useChat() {
       }
 
       const segments = state.lensViewActive ? parseLensResponse(fullText) : null
+      const formattedText = state.lensViewActive ? parseFormattedText(fullText) : null
 
       dispatch({
         type: 'FINALISE_MESSAGE',
         id: assistantId,
         rawText: fullText,
         segments,
+        formattedText,
       })
     } catch (err) {
       dispatch({ type: 'SET_ERROR', error: err.message })
