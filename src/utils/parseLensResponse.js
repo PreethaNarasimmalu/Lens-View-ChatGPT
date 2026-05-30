@@ -34,7 +34,11 @@ export function parseLensResponse(rawText) {
       text: s.text,
       type: VALID_TYPES.has(s.type) ? s.type : 'VERIFIED',
       reason: typeof s.reason === 'string' ? s.reason : null,
-      sources: Array.isArray(s.sources) && s.sources.length > 0 ? s.sources : null,
+      sources: Array.isArray(s.sources)
+        ? s.sources.filter(src => src?.title?.trim() && src?.url?.startsWith('http'))
+            .map(src => ({ title: src.title.trim(), url: src.url, snippet: src.snippet || '' }))
+            .slice(0, 5) || null
+        : null,
     }))
 
   return mapped.length > 0

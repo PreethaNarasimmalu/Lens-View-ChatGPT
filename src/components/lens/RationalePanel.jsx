@@ -61,15 +61,14 @@ export default function RationalePanel({ message, onClose }) {
 
   const segments = message.segments ?? []
 
-  // Collect up to 5 unique sources across all segments
+  // Collect up to 5 unique, valid sources across all segments
   const seenUrls = new Set()
   const allSources = segments
     .flatMap(s => s.sources ?? [])
-    .filter(Boolean)
+    .filter(src => src?.title?.trim() && src?.url?.startsWith('http'))
     .filter(src => {
-      const key = src.url || src.title
-      if (seenUrls.has(key)) return false
-      seenUrls.add(key)
+      if (seenUrls.has(src.url)) return false
+      seenUrls.add(src.url)
       return true
     })
     .slice(0, 5)
