@@ -1,7 +1,7 @@
 import TypingIndicator from './TypingIndicator'
 import LensResponse from '../lens/LensResponse'
 
-export default function MessageBubble({ message, isStreamingThis, lensViewActive, onOpenRationale }) {
+export default function MessageBubble({ message, isStreamingThis, isClassifyingThis, lensViewActive, onOpenRationale }) {
   const isUser = message.role === 'user'
 
   if (isUser) {
@@ -15,12 +15,8 @@ export default function MessageBubble({ message, isStreamingThis, lensViewActive
   }
 
   const hasLensData = lensViewActive && message.segments?.length > 0
-  const isFinished = !isStreamingThis
-  const isEmpty = isFinished && !message.rawText?.trim()
-
-  // While streaming a Lens View response, the model outputs raw JSON — hide it and show
-  // the typing indicator until streaming is complete and segments are parsed.
-  const isStreamingLens = isStreamingThis && lensViewActive
+  const isFinished = !isStreamingThis && !isClassifyingThis
+  const isEmpty = !isStreamingThis && !message.rawText?.trim()
 
   return (
     <div data-testid="message-assistant" className="flex justify-start px-4 py-2">
@@ -32,7 +28,7 @@ export default function MessageBubble({ message, isStreamingThis, lensViewActive
       </div>
 
       <div className="flex-1 min-w-0 max-w-[80%] md:max-w-[70%] flex flex-col gap-2 chat-message">
-        {isStreamingLens || (isStreamingThis && message.rawText === '') ? (
+        {isStreamingThis && message.rawText === '' ? (
           <TypingIndicator />
         ) : isEmpty ? (
           <p data-testid="empty-response" className="text-sm text-gray-500 italic">
@@ -47,7 +43,17 @@ export default function MessageBubble({ message, isStreamingThis, lensViewActive
           />
         )}
 
-        {/* Rationale button — shown when Lens View is on and message is done */}
+        {/* Pass 2 in progress — show subtle analysing badge below the answer */}
+        {isClassifyingThis && (
+          <div className="flex items-center gap-1.5 text-xs text-violet-500 dark:text-violet-400 animate-pulse">
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Analysing claims…
+          </div>
+        )}
+
+        {/* Rationale button — shown when Lens View is on and classification is done */}
         {hasLensData && isFinished && (
           <button
             data-testid="rationale-button"

@@ -44,6 +44,7 @@ function ChatShell() {
         <ChatArea
           messages={state.messages}
           isStreaming={state.isStreaming}
+          isClassifying={state.isClassifying}
           lensViewActive={state.lensViewActive}
           onPresetClick={sendMessage}
           onOpenRationale={setRationaleMessage}

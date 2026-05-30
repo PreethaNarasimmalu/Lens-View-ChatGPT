@@ -4,12 +4,11 @@ import LensText from './LensText'
 const PROSE = 'text-sm leading-relaxed text-gray-900 dark:text-gray-100 prose prose-sm max-w-none dark:prose-invert prose-p:my-1 prose-li:my-0.5 prose-headings:my-2'
 
 export default function LensResponse({ segments, rawText, formattedText, lensViewActive }) {
-  if (!lensViewActive) {
-    // If rawText is a Lens JSON blob, use formattedText or reconstruct from segments
-    const isJson = rawText?.trimStart().startsWith('{') || rawText?.trimStart().startsWith('[')
-    const displayText = isJson
-      ? (formattedText || segments?.map(s => s.text).join(' ') || rawText)
-      : rawText
+  // formattedText is the clean Pass-1 markdown answer (always readable).
+  // rawText may be that same text, or legacy JSON from old single-pass approach.
+  const displayText = formattedText || rawText
+
+  if (!lensViewActive || !segments) {
     return (
       <div data-testid="plain-response" className={PROSE}>
         <ReactMarkdown>{displayText}</ReactMarkdown>
@@ -17,18 +16,7 @@ export default function LensResponse({ segments, rawText, formattedText, lensVie
     )
   }
 
-  if (!segments) {
-    return (
-      <div data-testid="plain-response" className={PROSE}>
-        <ReactMarkdown>{rawText}</ReactMarkdown>
-      </div>
-    )
-  }
-
-  // Use the pre-formatted markdown from the model when available, else reconstruct
-  const markdownSource = formattedText || segments.map(s => s.text).join(' ')
-
-  // Build a map of segment text → segment for non-VERIFIED annotation
+  // Build annotation map — only non-VERIFIED segments need highlighting
   const segmentMap = new Map()
   for (const seg of segments) {
     if (seg.type !== 'VERIFIED' && seg.text?.trim()) {
@@ -36,14 +24,19 @@ export default function LensResponse({ segments, rawText, formattedText, lensVie
     }
   }
 
+  // If displayText doesn't contain the segment texts (e.g. legacy or test data),
+  // reconstruct markdown source from segments so annotations still appear.
+  const hasMatch = [...segmentMap.keys()].some(t => displayText.includes(t))
+  const markdownSource = hasMatch ? displayText : segments.map(s => s.text).join(' ')
+
   return (
     <div data-testid="lens-response" className={PROSE}>
       <ReactMarkdown
         components={{
-          p: ({ children }) => <p>{annotateProse(children, segments, segmentMap)}</p>,
-          li: ({ children }) => <li>{annotateProse(children, segments, segmentMap)}</li>,
-          strong: ({ children }) => <strong>{annotateProse(children, segments, segmentMap)}</strong>,
-          em: ({ children }) => <em>{annotateProse(children, segments, segmentMap)}</em>,
+          p: ({ children }) => <p>{annotate(children, segmentMap)}</p>,
+          li: ({ children }) => <li>{annotate(children, segmentMap)}</li>,
+          strong: ({ children }) => <strong>{annotate(children, segmentMap)}</strong>,
+          em: ({ children }) => <em>{annotate(children, segmentMap)}</em>,
         }}
       >
         {markdownSource}
@@ -52,12 +45,11 @@ export default function LensResponse({ segments, rawText, formattedText, lensVie
   )
 }
 
-function annotateProse(children, segments, segmentMap) {
+function annotate(children, segmentMap) {
   const arr = Array.isArray(children) ? children : [children]
-  return arr.flatMap((child, ci) => {
-    if (typeof child !== 'string') return [child]
-    return splitBySegments(child, segmentMap, ci)
-  })
+  return arr.flatMap((child, ci) =>
+    typeof child === 'string' ? splitBySegments(child, segmentMap, ci) : [child]
+  )
 }
 
 function splitBySegments(str, segmentMap, keyPrefix) {

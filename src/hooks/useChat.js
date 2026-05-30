@@ -1,7 +1,7 @@
 import { useCallback } from 'react'
 import { useChat as useChatContext } from '../context/ChatContext'
-import { streamResponse } from '../services/groqService'
-import { parseLensResponse, parseFormattedText } from '../utils/parseLensResponse'
+import { streamResponse, classifyResponse } from '../services/groqService'
+import { parseLensResponse } from '../utils/parseLensResponse'
 
 export function useChat() {
   const { state, dispatch } = useChatContext()
@@ -20,7 +20,6 @@ export function useChat() {
       payload: { id: assistantId, role: 'assistant', rawText: '', segments: null, timestamp: Date.now() },
     })
 
-    // Build conversation history for Groq (exclude the empty assistant stub)
     const history = [
       ...state.messages.map(m => ({ role: m.role, content: m.rawText })),
       { role: 'user', content: text },
@@ -29,29 +28,43 @@ export function useChat() {
     let fullText = ''
 
     try {
-      for await (const chunk of streamResponse({ messages: history, lensView: state.lensViewActive })) {
+      // Pass 1 — stream the plain answer (always uses standard prompt)
+      for await (const chunk of streamResponse({ messages: history })) {
         fullText += chunk
         dispatch({ type: 'STREAM_CHUNK', id: assistantId, chunk })
       }
 
-      const segments = state.lensViewActive ? parseLensResponse(fullText) : null
-      const formattedText = state.lensViewActive ? parseFormattedText(fullText) : null
-
+      // Finalise with the streamed text so user can read it immediately
       dispatch({
         type: 'FINALISE_MESSAGE',
         id: assistantId,
         rawText: fullText,
-        segments,
-        formattedText,
+        segments: null,
+        formattedText: null,
       })
+
+      // Pass 2 — run critic classification silently if Lens View is ON
+      if (state.lensViewActive) {
+        dispatch({ type: 'START_CLASSIFYING', id: assistantId })
+
+        const classifyRaw = await classifyResponse({ answer: fullText, question: text })
+        const segments = parseLensResponse(classifyRaw)
+
+        dispatch({
+          type: 'APPLY_SEGMENTS',
+          id: assistantId,
+          segments,
+          formattedText: fullText,
+        })
+      }
     } catch (err) {
       dispatch({ type: 'SET_ERROR', error: err.message })
-      // Replace empty assistant stub with the error text so it's visible in chat
       dispatch({
         type: 'FINALISE_MESSAGE',
         id: assistantId,
         rawText: `⚠ ${err.message}`,
         segments: null,
+        formattedText: null,
       })
     }
   }, [dispatch, state.messages, state.lensViewActive])

@@ -5,6 +5,7 @@ const ChatContext = createContext(null)
 const initialState = {
   messages: [],
   isStreaming: false,
+  isClassifying: false,
   lensViewActive: false,
   rationaleOpen: false,
   activeMessage: null,
@@ -38,6 +39,18 @@ function chatReducer(state, action) {
         isStreaming: false,
         messages: state.messages.map(m =>
           m.id === action.id ? { ...m, rawText: action.rawText, segments: action.segments, formattedText: action.formattedText ?? null } : m
+        ),
+      }
+    case 'START_CLASSIFYING':
+      return { ...state, isClassifying: true }
+    case 'APPLY_SEGMENTS':
+      return {
+        ...state,
+        isClassifying: false,
+        messages: state.messages.map(m =>
+          m.id === action.id
+            ? { ...m, segments: action.segments, formattedText: action.formattedText }
+            : m
         ),
       }
     case 'SET_STREAMING':

@@ -2,7 +2,7 @@ import { useRef, useEffect } from 'react'
 import EmptyState from './EmptyState'
 import MessageBubble from './MessageBubble'
 
-export default function ChatArea({ messages, isStreaming, lensViewActive, onPresetClick, onOpenRationale }) {
+export default function ChatArea({ messages, isStreaming, isClassifying, lensViewActive, onPresetClick, onOpenRationale }) {
   const bottomRef = useRef(null)
 
   useEffect(() => {
@@ -13,9 +13,8 @@ export default function ChatArea({ messages, isStreaming, lensViewActive, onPres
 
   const isEmpty = messages.length === 0
 
-  // Show hint when Lens View is ON but existing messages have no segments
-  // (they were sent before Lens View was enabled)
   const hasUnanalysedMessages = lensViewActive &&
+    !isStreaming && !isClassifying &&
     messages.some(m => m.role === 'assistant' && !m.segments && m.rawText?.trim())
 
   return (
@@ -27,7 +26,6 @@ export default function ChatArea({ messages, isStreaming, lensViewActive, onPres
         <EmptyState onPresetClick={onPresetClick} />
       ) : (
         <div className="flex flex-col py-4 max-w-3xl mx-auto w-full">
-          {/* Hint banner when Lens View is ON but responses predate it */}
           {hasUnanalysedMessages && (
             <div className="mx-4 mb-4 px-4 py-2.5 rounded-xl bg-violet-500/10 border border-violet-500/20 flex items-center gap-2 text-xs text-violet-500 dark:text-violet-400">
               <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -38,13 +36,13 @@ export default function ChatArea({ messages, isStreaming, lensViewActive, onPres
           )}
 
           {messages.map((msg, idx) => {
-            const isLastAssistant =
-              msg.role === 'assistant' && idx === messages.length - 1
+            const isLastAssistant = msg.role === 'assistant' && idx === messages.length - 1
             return (
               <MessageBubble
                 key={msg.id}
                 message={msg}
                 isStreamingThis={isStreaming && isLastAssistant}
+                isClassifyingThis={isClassifying && isLastAssistant}
                 lensViewActive={lensViewActive}
                 onOpenRationale={onOpenRationale}
               />

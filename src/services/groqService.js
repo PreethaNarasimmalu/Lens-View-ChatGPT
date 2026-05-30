@@ -1,4 +1,5 @@
 const ENDPOINT = '/api/chat'
+const CLASSIFY_ENDPOINT = '/api/classify'
 
 /**
  * Streams a response from the Groq proxy.
@@ -37,4 +38,28 @@ export async function* streamResponse({ messages, lensView = false }) {
     const chunk = decoder.decode(value, { stream: true })
     if (chunk) yield chunk
   }
+}
+
+/**
+ * Pass 2 — sends the completed answer to the critic endpoint.
+ * Returns the raw response text (JSON string).
+ */
+export async function classifyResponse({ answer, question }) {
+  let res
+  try {
+    res = await fetch(CLASSIFY_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ answer, question }),
+    })
+  } catch {
+    throw new Error('Network error — could not reach classify endpoint.')
+  }
+
+  if (!res.ok) {
+    if (res.status === 429) throw new Error('Too many requests — please wait a moment.')
+    throw new Error(`Classify failed (${res.status})`)
+  }
+
+  return res.text()
 }
