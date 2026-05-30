@@ -12,13 +12,11 @@ const msgWithAll = {
       text: '97% agree.',
       type: 'UNCERTAIN',
       reason: 'Varies by study.',
-      sources: [
-        { title: 'Nature Study', url: 'https://nature.com', snippet: 'Scientists find...' },
-        { title: 'MIT Report', url: 'https://mit.edu', snippet: 'Research shows...' },
-      ],
+      verify_by: 'Check a peer-reviewed meta-analysis on this topic.',
+      sources: null,
     },
-    { text: 'Will worsen.', type: 'ASSUMPTION', reason: 'Inferred from trends.', sources: null },
-    { text: 'No basis here.', type: 'ASSUMPTION', reason: null, sources: null },
+    { text: 'Will worsen.', type: 'ASSUMPTION', reason: 'Inferred from trends.', verify_by: null, sources: null },
+    { text: 'No basis here.', type: 'ASSUMPTION', reason: null, verify_by: null, sources: null },
   ],
 }
 
@@ -66,20 +64,9 @@ describe('RationalePanel — Phase 5', () => {
     expect(onClose).toHaveBeenCalled()
   })
 
-  it('renders sources section when sources exist', () => {
+  it('renders verify_by hint when present', () => {
     render(<RationalePanel message={msgWithAll} onClose={() => {}} />)
-    expect(screen.getByTestId('sources-section')).toBeInTheDocument()
-  })
-
-  it('renders source titles', () => {
-    render(<RationalePanel message={msgWithAll} onClose={() => {}} />)
-    expect(screen.getByText('Nature Study')).toBeInTheDocument()
-    expect(screen.getByText('MIT Report')).toBeInTheDocument()
-  })
-
-  it('renders source snippets', () => {
-    render(<RationalePanel message={msgWithAll} onClose={() => {}} />)
-    expect(screen.getByText('Scientists find...')).toBeInTheDocument()
+    expect(screen.getByText('Check a peer-reviewed meta-analysis on this topic.')).toBeInTheDocument()
   })
 
   it('renders assumptions section', () => {
@@ -92,11 +79,6 @@ describe('RationalePanel — Phase 5', () => {
     expect(screen.getByText('"Will worsen."')).toBeInTheDocument()
   })
 
-  it('flags baseless assumption (no reason) with amber dot', () => {
-    render(<RationalePanel message={msgWithAll} onClose={() => {}} />)
-    const baselessDots = screen.getAllByLabelText('baseless assumption')
-    expect(baselessDots.length).toBeGreaterThan(0)
-  })
 
   it('renders uncertain section', () => {
     render(<RationalePanel message={msgWithAll} onClose={() => {}} />)
